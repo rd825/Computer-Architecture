@@ -67,6 +67,13 @@ void cpu_run(struct cpu *cpu)
 void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
+
+  for (int i = 0; i < 7; i++)
+  {
+    cpu->registers[i] = 0;
+  }
+
+  cpu->PC = 0;
 }
 
 // pc = program counter
