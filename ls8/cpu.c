@@ -1,4 +1,6 @@
 #include "cpu.h"
+#include <stdio.h>
+#include <string.h>
 
 #define DATA_LEN 6
 
@@ -27,6 +29,16 @@ void cpu_load(struct cpu *cpu)
   // TODO: Replace this with something less hard-coded
 }
 
+unsigned char cpu_ram_read(struct cpu *cpu, unsigned char address)
+{
+  return cpu->ram[address];
+}
+
+void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value)
+{
+  cpu->ram[address] = value;
+}
+
 /**
  * ALU
  */
@@ -52,12 +64,45 @@ void cpu_run(struct cpu *cpu)
   while (running)
   {
     // TODO
+
     // 1. Get the value of the current instruction (in address PC).
+    // IR: Instruction Register, contains a copy of the currently executing instruction
+    unsigned char IR = cpu_ram_read(cpu, cpu->PC);
+
     // 2. Figure out how many operands this next instruction requires
+    unsigned char ops = IR >> 6;
+
     // 3. Get the appropriate value(s) of the operands following this instruction
+    unsigned char operandA = cpu_ram_read(cpu, cpu->PC + 1);
+    unsigned char operandB = cpu_ram_read(cpu, cpu->PC + 2);
+
     // 4. switch() over it to decide on a course of action.
-    // 5. Do whatever the instruction should do according to the spec.
+    switch (IR)
+    {
+      // 5. Do whatever the instruction should do according to the spec.
+
+    // Set the value of a register to an integer.
+    case LDI:
+      cpu->registers[operandA] = operandB;
+      break;
+
+    // Print to the console the decimal integer value that is stored in the given register.
+    case PRN:
+      printf("%d\n", cpu->registers[operandA]);
+      break;
+
+    // Halt the CPU (and exit the emulator).
+    case HLT:
+      running = 0;
+      break;
+
+    default:
+      printf("Invalid Instruction: %d\n", IR);
+      running = 0;
+      break;
+    }
     // 6. Move the PC to the next instruction.
+    cpu->PC += (ops + 1);
   }
 }
 
@@ -67,24 +112,7 @@ void cpu_run(struct cpu *cpu)
 void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
-
-  for (int i = 0; i < 7; i++)
-  {
-    cpu->registers[i] = 0;
-  }
-
   cpu->PC = 0;
-}
-
-// pc = program counter
-void cpu_ram_read(struct cpu *cpu, unsigned int index)
-{
-  return cpu->ram[index];
-};
-
-// MAR: Memory Address Register, holds the memory address we're reading or writing
-// MDR: Memory Data Register, holds the value to write or the value just read
-void cpu_ram_write(struct cpu *cpu, unsigned MAR, unsigned char MDR)
-{
-  cpu->ram[MAR] = MDR;
+  memset(cpu->registers, 0, 8);
+  memset(cpu->ram, 0, 256);
 }
