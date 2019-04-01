@@ -6,13 +6,13 @@ struct cpu
 {
   // TODO
   // PC: Program Counter, address of the currently executing instruction
-  int pc;
+  unsigned int PC;
 
   // registers (array)
   unsigned char registers[8];
 
   // ram (array)
-  unsigned char ram[];
+  unsigned char ram[256];
 };
 
 // ALU operations
