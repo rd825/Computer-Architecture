@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 // #define DATA_LEN 6
+#define SP 7 // set the stack pointer to
 
 unsigned char cpu_ram_read(struct cpu *cpu, unsigned char address)
 {
@@ -13,6 +14,22 @@ unsigned char cpu_ram_read(struct cpu *cpu, unsigned char address)
 void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value)
 {
   cpu->ram[address] = value;
+}
+
+// STACK POP
+void stack_push(struct cpu *cpu, unsigned char value)
+{
+  // decrement stack pointer
+  cpu->registers[SP]--;
+  cpu_ram_write(cpu, cpu->registers[SP], value);
+}
+
+// STACK PUSH
+unsigned char stack_pop(struct cpu *cpu)
+{
+  unsigned char popped = cpu->ram[cpu->registers[SP]];
+  cpu->registers[SP]++;
+  return popped;
 }
 
 /**
@@ -123,6 +140,14 @@ void cpu_run(struct cpu *cpu)
       alu(cpu, ALU_MUL, operandA, operandB);
       break;
 
+    case PUSH:
+      stack_push(cpu, cpu->registers[operandA]);
+      break;
+
+    case POP:
+      cpu->registers[operandA] = stack_pop(cpu);
+      break;
+
     // Halt the CPU (and exit the emulator).
     case HLT:
       running = 0;
@@ -145,6 +170,7 @@ void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
   cpu->PC = 0;
-  memset(cpu->registers, 0, 8);
-  memset(cpu->ram, 0, 256);
+  cpu->registers[SP] = EMPTY_STACK_ADDR;
+  memset(cpu->registers, 0, sizeof(cpu->registers));
+  memset(cpu->ram, 0, sizeof(cpu->ram));
 }

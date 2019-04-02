@@ -8,6 +8,9 @@ struct cpu
   // PC: Program Counter, address of the currently executing instruction
   unsigned int PC;
 
+  // stack pointer (SP)
+  unsigned int SP;
+
   // registers (array)
   unsigned char registers[8];
 
@@ -24,6 +27,8 @@ enum alu_op
 
 // Instructions
 
+#define EMPTY_STACK_ADDR 0xF4 // stack is empty
+
 // These use binary literals. If these aren't available with your compiler, hex
 // literals should be used.
 
@@ -31,7 +36,9 @@ enum alu_op
 #define HLT 0b00000001
 #define PRN 0b01000111
 // TODO: more instructions here. These can be used in cpu_run().
-#define MUL 0b10100010 // MULTIPLY INSTRUCTION
+#define MUL 0b10100010  // MULTIPLY INSTRUCTION
+#define PUSH 0b01000101 // STACK PUSH INSTRUCTION
+#define POP 0b01000110  // STACK POP INSTRUCTION
 
 // Function declarations
 
