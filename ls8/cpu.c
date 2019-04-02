@@ -1,33 +1,9 @@
 #include "cpu.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-#define DATA_LEN 6
-
-/**
- * Load the binary bytes from a .ls8 source file into a RAM array
- */
-void cpu_load(struct cpu *cpu)
-{
-  char data[DATA_LEN] = {
-      // From print8.ls8
-      0b10000010, // LDI R0,8
-      0b00000000,
-      0b00001000,
-      0b01000111, // PRN R0
-      0b00000000,
-      0b00000001 // HLT
-  };
-
-  int address = 0;
-
-  for (int i = 0; i < DATA_LEN; i++)
-  {
-    cpu->ram[address++] = data[i];
-  }
-
-  // TODO: Replace this with something less hard-coded
-}
+// #define DATA_LEN 6
 
 unsigned char cpu_ram_read(struct cpu *cpu, unsigned char address)
 {
@@ -40,6 +16,57 @@ void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value)
 }
 
 /**
+ * Load the binary bytes from a .ls8 source file into a RAM array
+ */
+
+// added path to handle argv
+void cpu_load(struct cpu *cpu, int argc, char *path)
+{
+  // char data[DATA_LEN] = {
+  //     // From print8.ls8
+  //     0b10000010, // LDI R0,8
+  //     0b00000000,
+  //     0b00001000,
+  //     0b01000111, // PRN R0
+  //     0b00000000,
+  //     0b00000001 // HLT,
+  // };
+
+  // TODO: Replace this with something less hard-coded
+
+  if (argc < 2)
+  {
+    printf("No path provided in command line\n");
+    return;
+  }
+
+  FILE *fp = fopen(path, "r"); // read from file
+
+  if (fp == NULL)
+  {
+    printf("Couldn't read file: %s\n", path);
+    return;
+  }
+
+  int address = 0;
+  char line[1024];
+
+  while (fgets(line, sizeof(line), fp) != NULL)
+  {
+    char *endptr;
+    unsigned char val = strtol(line, &endptr, 2);
+
+    if (endptr == line)
+    {
+      continue;
+    }
+    cpu_ram_write(cpu, address++, val);
+  }
+
+  fclose(fp);
+}
+
+/**
  * ALU
  */
 void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
@@ -48,6 +75,7 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   {
   case ALU_MUL:
     // TODO
+    cpu->registers[regA] = cpu->registers[regA] * cpu->registers[regB]; // MULTIPLY regA * regB
     break;
 
     // TODO: implement more ALU ops
@@ -89,6 +117,10 @@ void cpu_run(struct cpu *cpu)
     // Print to the console the decimal integer value that is stored in the given register.
     case PRN:
       printf("%d\n", cpu->registers[operandA]);
+      break;
+
+    case MUL:
+      alu(cpu, ALU_MUL, operandA, operandB);
       break;
 
     // Halt the CPU (and exit the emulator).
